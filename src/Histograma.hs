@@ -40,7 +40,7 @@ vacio n (l, u) = Histograma l ((u-l)/(fromIntegral n)) (replicate (n + 2) 0)
 
 --  Histograma z y [] --> z + (t*y) = x -> t
 agregar :: Float -> Histograma -> Histograma
-agregar x (Histograma z y xs) = Histograma z y (actualizarElem (floor ((x - z)/y) + 1) (+1) xs) 
+agregar x (Histograma z y xs) = Histograma z y (actualizarElem (min (max (floor ((x - z)/y) + 1) 0) ((length xs)-1)) (+1) xs) 
 -- (-inf, 1.5), (1.5,2.0), (2.0, 2.5), (2.5,+inf)
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
@@ -70,4 +70,10 @@ casPorcentaje (Casillero _ _ _ p) = p
 
 -- | Dado un histograma, devuelve la lista de casilleros con sus límites, cantidad y porcentaje.
 casilleros :: Histograma -> [Casillero]
-casilleros (Histograma z y xs) = zipWith4 
+casilleros (Histograma z y xs) = 
+              zipWith4 
+                    (\m n c p -> Casillero m n c p) 
+                    ([infinitoNegativo] ++ zipWith (\_ i -> z+(fromIntegral(i)*y)) [0..] [0..length(xs)])
+                    (zipWith (\_ i -> z+(fromIntegral(i)*y)) [0..] [0..length(xs)-2] ++ [infinitoPositivo]) 
+                    xs 
+                    (map (\e -> if sum(xs) == 0 then 0 else 100.0*(fromIntegral(e)/fromIntegral(sum(xs)))) xs)
