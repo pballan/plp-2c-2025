@@ -9,6 +9,7 @@ module Expr
   )
 where
 
+import qualified Data.Bifunctor
 import Generador
 import Histograma
 
@@ -23,14 +24,55 @@ data Expr
   deriving (Show, Eq)
 
 -- recrExpr :: ... anotar el tipo ...
-recrExpr = error "COMPLETAR EJERCICIO 7"
+recrExpr ::
+  (Float -> b) ->
+  (Float -> Float -> b) ->
+  (Expr -> Expr -> b -> b -> b) ->
+  (Expr -> Expr -> b -> b -> b) ->
+  (Expr -> Expr -> b -> b -> b) ->
+  (Expr -> Expr -> b -> b -> b) ->
+  Expr ->
+  b
+recrExpr cConst cRango cSuma cResta cMult cDiv e = case e of
+  Const f -> cConst f
+  Rango f1 f2 -> cRango f1 f2
+  Suma e1 e2 -> cSuma e1 e2 (rec e1) (rec e2)
+  Resta e1 e2 -> cResta e1 e2 (rec e1) (rec e2)
+  Mult e1 e2 -> cMult e1 e2 (rec e1) (rec e2)
+  Div e1 e2 -> cDiv e1 e2 (rec e1) (rec e2)
+  where
+    rec = recrExpr cConst cRango cSuma cResta cMult cDiv
 
 -- foldExpr :: ... anotar el tipo ...
-foldExpr = error "COMPLETAR EJERCICIO 7"
+foldExpr ::
+  (Float -> b) ->
+  (Float -> Float -> b) ->
+  (b -> b -> b) ->
+  (b -> b -> b) ->
+  (b -> b -> b) ->
+  (b -> b -> b) ->
+  Expr ->
+  b
+foldExpr cConst cRango cSuma cResta cMult cDiv e = case e of
+  Const f -> cConst f
+  Rango f1 f2 -> cRango f1 f2
+  Suma e1 e2 -> cSuma (rec e1) (rec e2)
+  Resta e1 e2 -> cResta (rec e1) (rec e2)
+  Mult e1 e2 -> cMult (rec e1) (rec e2)
+  Div e1 e2 -> cDiv (rec e1) (rec e2)
+  where
+    rec = foldExpr cConst cRango cSuma cResta cMult cDiv
 
 -- | Evaluar expresiones dado un generador de números aleatorios
 eval :: Expr -> G Float
-eval = error "COMPLETAR EJERCICIO 8"
+eval =
+  foldExpr
+    (\c gs -> (c, gs))
+    (\l u gs -> dameUno (l, u) gs)
+    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) +) (e2 (snd (e1 gs))))
+    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) -) (e2 (snd (e1 gs))))
+    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) *) (e2 (snd (e1 gs))))
+    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) /) (e2 (snd (e1 gs))))
 
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
 -- a partir del resultado de tomar @n@ muestras de @f@ usando el generador @g@.
