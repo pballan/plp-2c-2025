@@ -10,6 +10,7 @@ module Expr
 where
 
 import qualified Data.Bifunctor
+import Data.List.NonEmpty (cons)
 import Generador
 import Histograma
 
@@ -69,6 +70,7 @@ eval =
   foldExpr
     (\c gs -> (c, gs))
     (\l u gs -> dameUno (l, u) gs)
+    -- equivalente a (\e1 e2 gs -> (fst (e1 gs) + fst (e2 (snd (e1 gs))), snd (e2 (snd (e1 gs)))))
     (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) +) (e2 (snd (e1 gs))))
     (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) -) (e2 (snd (e1 gs))))
     (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) *) (e2 (snd (e1 gs))))
@@ -77,17 +79,15 @@ eval =
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
 -- a partir del resultado de tomar @n@ muestras de @f@ usando el generador @g@.
 armarHistograma :: Int -> Int -> G Float -> G Histograma
-armarHistograma m n f gin = (histograma m r xl , gout)
-  where (xl, gout) = muestra f n gin
-        r = rango95 xl
+armarHistograma m n f gin = (histograma m r xl, gout)
+  where
+    (xl, gout) = muestra f n gin
+    r = rango95 xl
 
 -- | @evalHistograma m n e g@ evalúa la expresión @e@ usando el generador @g@ @n@ veces
 -- devuelve un histograma con @m@ casilleros y rango calculado con @rango95@ para abarcar el 95% de confianza de los valores.
 -- @n@ debe ser mayor que 0.
 evalHistograma :: Int -> Int -> Expr -> G Histograma
-{-aca podria ser que tenga que pedirle explicitamente el gen asi como en armarHistograma
-evalHistograma m n expr g = armarHistograma m n ff g
--}
 evalHistograma m n expr = armarHistograma m n (eval expr)
 
 -- Podemos armar histogramas que muestren las n evaluaciones en m casilleros.
@@ -100,7 +100,14 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 -- | Mostrar las expresiones, pero evitando algunos paréntesis innecesarios.
 -- En particular queremos evitar paréntesis en sumas y productos anidados.
 mostrar :: Expr -> String
-mostrar = error "COMPLETAR EJERCICIO 11"
+mostrar =
+  recrExpr
+    (\c -> show c)
+    (\l u -> show l ++ "~" ++ show u)
+    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `elem` [CEResta, CEMult, CEDiv]) s1 ++ " + " ++ maybeParen (constructor e2 `elem` [CEResta, CEMult, CEDiv]) s2)
+    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `notElem` [CEConst, CERango]) s1 ++ " - " ++ maybeParen (constructor e2 `notElem` [CEConst, CERango]) s2)
+    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `elem` [CESuma, CEResta, CEDiv]) s1 ++ " * " ++ maybeParen (constructor e2 `elem` [CESuma, CEResta, CEDiv]) s2)
+    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `notElem` [CEConst, CERango]) s1 ++ " / " ++ maybeParen (constructor e2 `notElem` [CEConst, CERango]) s2)
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)
