@@ -33,19 +33,21 @@ data Histograma = Histograma Float Float [Int]
 -- valores en el rango y 2 casilleros adicionales para los valores fuera del rango.
 -- Require que @l < u@ y @n >= 1@.
 vacio :: Int -> (Float, Float) -> Histograma
-vacio n (l, u) = Histograma l ((u-l)/(fromIntegral n)) (replicate (n + 2) 0)
---infinitoPositivo infinitoNegativo
+vacio n (l, u) = Histograma l ((u - l) / fromIntegral n) (replicate (n + 2) 0)
+
+-- infinitoPositivo infinitoNegativo
 
 -- | Agrega un valor al histograma.
 
 --  Histograma z y [] --> z + (t*y) = x -> t
 agregar :: Float -> Histograma -> Histograma
-agregar x (Histograma z y xs) = Histograma z y (actualizarElem (min (max (floor ((x - z)/y) + 1) 0) ((length xs)-1)) (+1) xs) 
+agregar x (Histograma z y xs) = Histograma z y (actualizarElem (min (max (floor ((x - z) / y) + 1) 0) (length xs - 1)) (+ 1) xs)
+
 -- (-inf, 1.5), (1.5,2.0), (2.0, 2.5), (2.5,+inf)
+
 -- | Arma un histograma a partir de una lista de números reales con la cantidad de casilleros y rango indicados.
 histograma :: Int -> (Float, Float) -> [Float] -> Histograma
-histograma n r xs = foldr agregar (vacio n r) xs
-
+histograma n r = foldr agregar (vacio n r)
 
 -- | Un `Casillero` representa un casillero del histograma con sus límites, cantidad y porcentaje.
 -- Invariante: Sea @Casillero m1 m2 c p@ entonces @m1 < m2@, @c >= 0@, @0 <= p <= 100@
@@ -70,10 +72,10 @@ casPorcentaje (Casillero _ _ _ p) = p
 
 -- | Dado un histograma, devuelve la lista de casilleros con sus límites, cantidad y porcentaje.
 casilleros :: Histograma -> [Casillero]
-casilleros (Histograma z y xs) = 
-              zipWith4 
-                    (\m n c p -> Casillero m n c p) 
-                    ([infinitoNegativo] ++ zipWith (\_ i -> z+(fromIntegral(i)*y)) [0..] [0..length(xs)])
-                    (zipWith (\_ i -> z+(fromIntegral(i)*y)) [0..] [0..length(xs)-2] ++ [infinitoPositivo]) 
-                    xs 
-                    (map (\e -> if sum(xs) == 0 then 0 else 100.0*(fromIntegral(e)/fromIntegral(sum(xs)))) xs)
+casilleros (Histograma z y xs) =
+  zipWith4
+    Casillero
+    (infinitoNegativo : zipWith (\_ i -> z + fromIntegral i * y) [0 ..] [0 .. length xs])
+    (zipWith (\_ i -> z + fromIntegral i * y) [0 ..] [0 .. length xs - 2] ++ [infinitoPositivo])
+    xs
+    (map (\e -> if sum xs == 0 then 0 else 100.0 * (fromIntegral e / fromIntegral (sum xs))) xs)

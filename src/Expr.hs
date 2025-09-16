@@ -24,7 +24,7 @@ data Expr
   | Div Expr Expr
   deriving (Show, Eq)
 
--- recrExpr :: ... anotar el tipo ...
+-- recrExpr :: Esquema de recursión primitiva sobre expresiones
 recrExpr ::
   (Float -> b) ->
   (Float -> Float -> b) ->
@@ -44,7 +44,7 @@ recrExpr cConst cRango cSuma cResta cMult cDiv e = case e of
   where
     rec = recrExpr cConst cRango cSuma cResta cMult cDiv
 
--- foldExpr :: ... anotar el tipo ...
+-- foldExpr :: Esquema de recursión estructural sobre expresiones
 foldExpr ::
   (Float -> b) ->
   (Float -> Float -> b) ->

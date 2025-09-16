@@ -25,15 +25,15 @@ allTests =
       "Ej 4 - Histograma.agregar" ~: testsAgregar,
       "Ej 5 - Histograma.histograma" ~: testsHistograma,
       "Ej 6 - Histograma.casilleros" ~: testsCasilleros,
-      -- "Ej 7 - Expr.recrExpr" ~: testsRecr,
-      -- "Ej 7 - Expr.foldExpr" ~: testsFold,
-      "Ej 8 - Expr.eval" ~: testsEval
-      {--"Ej 9 - Expr.armarHistograma" ~: testsArmarHistograma,
+      "Ej 7 - Expr.recrExpr" ~: testsRecr,
+      "Ej 7 - Expr.foldExpr" ~: testsFold,
+      "Ej 8 - Expr.eval" ~: testsEval,
+      "Ej 9 - Expr.armarHistograma" ~: testsArmarHistograma,
       "Ej 10 - Expr.evalHistograma" ~: testsEvalHistograma,
       "Ej 11 - Expr.mostrar" ~: testsMostrar,
       "Expr.Parser.parse" ~: testsParse,
       "App.mostrarFloat" ~: testsMostrarFloat,
-      "App.mostrarHistograma" ~: testsMostrarHistograma--}
+      "App.mostrarHistograma" ~: testsMostrarHistograma
     ]
 
 testsAlinearDerecha :: Test
@@ -43,7 +43,7 @@ testsAlinearDerecha =
       alinearDerecha 10 "incierticalc" ~?= "incierticalc",
       alinearDerecha 2 "" ~?= "  ",
       alinearDerecha 3 " " ~?= "   ",
-      alinearDerecha 8 "daleboca" ~?= "daleboca"
+      alinearDerecha 4 "hola" ~?= "hola"
     ]
 
 testsActualizarElem :: Test
@@ -52,9 +52,9 @@ testsActualizarElem =
     [ actualizarElem 0 (+ 10) [1, 2, 3] ~?= [11, 2, 3],
       actualizarElem 1 (+ 10) [1, 2, 3] ~?= [1, 12, 3],
       actualizarElem (-1) (+ 10) [1, 2, 3] ~?= [1, 2, 3],
-      actualizarElem (3) (* 2) [1, 2, 3, 4] ~?= [1, 2, 3, 8],
-      actualizarElem (3) (* 2) [] ~?= [],
-      actualizarElem (2) (++ "a") ["a", "a", "b"] ~?= ["a", "a", "ba"]
+      actualizarElem 3 (* 2) [1, 2, 3, 4] ~?= [1, 2, 3, 8],
+      actualizarElem 3 (* 2) [] ~?= [],
+      actualizarElem 2 (++ "a") ["a", "a", "b"] ~?= ["a", "a", "ba"]
     ]
 
 testsVacio :: Test
@@ -134,7 +134,7 @@ testsAgregar =
                   Casillero 0 2 0 0,
                   Casillero 2 4 1 20,
                   Casillero 4 6 0 0,
-                  Casillero 6 infinitoPositivo 3 60.000004 -- Haskell redondea horrible, parcheo cosmico.
+                  Casillero 6 infinitoPositivo 3 60.000004
                 ]
         ]
 
@@ -168,13 +168,29 @@ testsCasilleros =
 testsRecr :: Test
 testsRecr =
   test
-    [ completar
+    [ recrExpr
+        (\c -> Const (c + 1))
+        (\l u -> Rango (l + 1) (u + 1))
+        (\e1 e2 r1 r2 -> Suma e1 (Suma r1 r2))
+        (\e1 e2 r1 r2 -> Resta e1 (Resta r1 r2))
+        (\e1 e2 r1 r2 -> Mult (Mult r1 r2) e2)
+        (\e1 e2 r1 r2 -> Div (Div r1 r2) e2)
+        (Suma (Rango 1 5) (Const 1))
+        ~?= Suma (Rango 1.0 5.0) (Suma (Rango 2.0 6.0) (Const 2.0))
     ]
 
 testsFold :: Test
 testsFold =
   test
-    [ completar
+    [ foldExpr
+        (\c -> Const (c + 1))
+        (\l u -> Rango (l + 1) (u + 1))
+        Suma
+        Resta
+        Mult
+        Div
+        (Suma (Rango 1 5) (Const 1))
+        ~?= Suma (Rango 2 6) (Const 2)
     ]
 
 testsEval :: Test
@@ -191,12 +207,16 @@ testsEval =
 testsArmarHistograma :: Test
 testsArmarHistograma =
   test
-    [completar]
+    [ fst (armarHistograma 1 1 (dameUno (1, 5)) (genNormalConSemilla 0)) ~?= histograma 1 (1.7980492, 3.7980492) [fst (dameUno (1, 5) (genNormalConSemilla 0))],
+      fst (armarHistograma 10 5 (dameUno (1, 5)) (genNormalConSemilla 0)) ~?= histograma 10 (0.77653575, 5.79564075) [2.7980492, 3.1250308, 5.464013, 3.526857, 1.5164927]
+    ]
 
 testsEvalHistograma :: Test
 testsEvalHistograma =
   test
-    [completar]
+    [ fst (evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105)) genFijo) ~?= histograma 11 (104.5, 106.5) [105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5],
+      fst (evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105)) (genNormalConSemilla 0)) ~?= histograma 11 (102.005486, 109.4118278) [105.45434, 108.62258, 104.74236, 108.77485, 101.97703, 105.34323, 106.31043, 104.52736, 106.369606, 104.96473]
+    ]
 
 testsParse :: Test
 testsParse =
@@ -239,7 +259,9 @@ testsMostrar =
       mostrar (Suma (Mult (Suma (Const 1) (Const 2)) (Const 3)) (Const 4))
         ~?= "((1.0 + 2.0) * 3.0) + 4.0",
       mostrar (Mult (Suma (Suma (Const 1) (Const 2)) (Const 3)) (Const 4))
-        ~?= "(1.0 + 2.0 + 3.0) * 4.0"
+        ~?= "(1.0 + 2.0 + 3.0) * 4.0",
+      mostrar (Const 0) ~?= "0.0",
+      mostrar (Rango 1 5) ~?= "1.0~5.0"
     ]
 
 testsMostrarFloat :: Test
