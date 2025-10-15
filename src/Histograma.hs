@@ -41,7 +41,7 @@ vacio n (l, u) = Histograma l ((u - l) / fromIntegral n) (replicate (n + 2) 0)
 
 --  Histograma z y [] --> z + (t*y) = x -> t
 agregar :: Float -> Histograma -> Histograma
-agregar x (Histograma z y xs) = Histograma z y (actualizarElem (min (max (floor ((x - z) / y) + 1) 0) (length xs - 1)) (+ 1) xs)
+agregar x (Histograma i t cs) = Histograma i t (actualizarElem (min (max (floor ((x - i) / t) + 1) 0) (length cs - 1)) (+ 1) cs)
 
 -- (-inf, 1.5), (1.5,2.0), (2.0, 2.5), (2.5,+inf)
 
