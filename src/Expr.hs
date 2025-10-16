@@ -68,13 +68,15 @@ foldExpr cConst cRango cSuma cResta cMult cDiv e = case e of
 eval :: Expr -> G Float
 eval =
   foldExpr
-    (\c gs -> (c, gs))
+    (,)
     (\l u gs -> dameUno (l, u) gs)
-    -- equivalente a (\e1 e2 gs -> (fst (e1 gs) + fst (e2 (snd (e1 gs))), snd (e2 (snd (e1 gs)))))
-    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) +) (e2 (snd (e1 gs))))
-    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) -) (e2 (snd (e1 gs))))
-    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) *) (e2 (snd (e1 gs))))
-    (\e1 e2 gs -> Data.Bifunctor.first (fst (e1 gs) /) (e2 (snd (e1 gs))))
+    (aux (+))
+    (aux (-))
+    (aux (*))
+    (aux (/))
+  where
+    -- equivalente a (op (fst (e1 gs)) (fst (e2 (snd (e1 gs)))), snd (e2 (snd (e1 gs))))
+    aux op e1 e2 gs = Data.Bifunctor.first (op (fst (e1 gs))) (e2 (snd (e1 gs)))
 
 -- | @armarHistograma m n f g@ arma un histograma con @m@ casilleros
 -- a partir del resultado de tomar @n@ muestras de @f@ usando el generador @g@.
@@ -102,33 +104,27 @@ evalHistograma m n expr = armarHistograma m n (eval expr)
 mostrar :: Expr -> String
 mostrar =
   recrExpr
-    (\c -> show c)
+    show
     (\l u -> show l ++ "~" ++ show u)
-    (superFunc " + ")
-    (superFunc " - ")
-    (superFunc " * ")
-    (superFunc " / ")
+    (aux " + " esResMulDiv)
+    (aux " - " noEsConsRan)
+    (aux " * " esSumResDiv)
+    (aux " / " noEsConsRan)
+  where
+    aux op b e1 e2 s1 s2 = maybeParen (b e1) s1 ++ op ++ maybeParen (b e2) s2
 
+esResMulDiv :: Expr -> Bool
+esResMulDiv ex = constructor ex `elem` [CEResta, CEMult, CEDiv]
 
-superFunc::String->Expr->Expr->String->String->String
-superFunc op e1 e2 s1 s2 = case op of
-    " + " -> maybeParen (esResMulDiv e1) s1 ++ " + " ++ maybeParen (esResMulDiv e2) s2
-    " - " -> maybeParen (noEsConsRan e1) s1 ++ " - " ++ maybeParen (noEsConsRan e2) s2
-    " * " -> maybeParen (esSumResDiv e1) s1 ++ " * " ++ maybeParen (esSumResDiv e2) s2
-    " / " -> maybeParen (noEsConsRan e1) s1 ++ " / " ++ maybeParen (noEsConsRan e2) s2
+esSumResDiv :: Expr -> Bool
+esSumResDiv ex = constructor ex `elem` [CESuma, CEResta, CEDiv]
 
-esResMulDiv::Expr->Bool
-esResMulDiv ex = elem (constructor ex) [CEResta, CEMult, CEDiv]
-
-esSumResDiv::Expr->Bool
-esSumResDiv ex = elem (constructor ex) [CESuma, CEResta, CEDiv]
-
-noEsConsRan::Expr->Bool
-noEsConsRan ex = not (elem (constructor ex) [CEConst, CERango])
+noEsConsRan :: Expr -> Bool
+noEsConsRan ex = constructor ex `notElem` [CEConst, CERango]
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)
-  
+
 -- | Indica qué constructor fue usado para crear la expresión.
 constructor :: Expr -> ConstructorExpr
 constructor (Const _) = CEConst
