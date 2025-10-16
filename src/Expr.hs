@@ -104,14 +104,31 @@ mostrar =
   recrExpr
     (\c -> show c)
     (\l u -> show l ++ "~" ++ show u)
-    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `elem` [CEResta, CEMult, CEDiv]) s1 ++ " + " ++ maybeParen (constructor e2 `elem` [CEResta, CEMult, CEDiv]) s2)
-    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `notElem` [CEConst, CERango]) s1 ++ " - " ++ maybeParen (constructor e2 `notElem` [CEConst, CERango]) s2)
-    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `elem` [CESuma, CEResta, CEDiv]) s1 ++ " * " ++ maybeParen (constructor e2 `elem` [CESuma, CEResta, CEDiv]) s2)
-    (\e1 e2 s1 s2 -> maybeParen (constructor e1 `notElem` [CEConst, CERango]) s1 ++ " / " ++ maybeParen (constructor e2 `notElem` [CEConst, CERango]) s2)
+    (superFunc " + ")
+    (superFunc " - ")
+    (superFunc " * ")
+    (superFunc " / ")
+
+
+superFunc::String->Expr->Expr->String->String->String
+superFunc op e1 e2 s1 s2 = case op of
+    " + " -> maybeParen (esResMulDiv e1) s1 ++ " + " ++ maybeParen (esResMulDiv e2) s2
+    " - " -> maybeParen (noEsConsRan e1) s1 ++ " - " ++ maybeParen (noEsConsRan e2) s2
+    " * " -> maybeParen (esSumResDiv e1) s1 ++ " * " ++ maybeParen (esSumResDiv e2) s2
+    " / " -> maybeParen (noEsConsRan e1) s1 ++ " / " ++ maybeParen (noEsConsRan e2) s2
+
+esResMulDiv::Expr->Bool
+esResMulDiv ex = elem (constructor ex) [CEResta, CEMult, CEDiv]
+
+esSumResDiv::Expr->Bool
+esSumResDiv ex = elem (constructor ex) [CESuma, CEResta, CEDiv]
+
+noEsConsRan::Expr->Bool
+noEsConsRan ex = not (elem (constructor ex) [CEConst, CERango])
 
 data ConstructorExpr = CEConst | CERango | CESuma | CEResta | CEMult | CEDiv
   deriving (Show, Eq)
-
+  
 -- | Indica qué constructor fue usado para crear la expresión.
 constructor :: Expr -> ConstructorExpr
 constructor (Const _) = CEConst
