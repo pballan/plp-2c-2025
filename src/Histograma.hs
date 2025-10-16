@@ -75,7 +75,9 @@ casilleros :: Histograma -> [Casillero]
 casilleros (Histograma z y xs) =
   zipWith4
     Casillero
-    (infinitoNegativo : zipWith (\_ i -> z + fromIntegral i * y) [0 ..] [0 .. length xs])
-    (zipWith (\_ i -> z + fromIntegral i * y) [0 ..] [0 .. length xs - 2] ++ [infinitoPositivo])
+    (infinitoNegativo : aux [0 .. length xs])
+    (aux [0 .. length xs - 2] ++ [infinitoPositivo])
     xs
     (map (\e -> if sum xs == 0 then 0 else 100.0 * (fromIntegral e / fromIntegral (sum xs))) xs)
+  where
+    aux = zipWith (\_ i -> z + fromIntegral i * y) [0 ..]
