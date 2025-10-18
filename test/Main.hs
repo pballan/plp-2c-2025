@@ -9,6 +9,15 @@ import Histograma
 import Test.HUnit
 import Util
 
+infix 1 @?/=, ~?/=
+
+-- definimos @?/= y ~?/= para facilitar los tests
+(@?/=) :: (Eq a, Show a) => a -> a -> Assertion
+actual @?/= expected = assertBool "" (expected /= actual)
+
+(~?/=) :: (Eq a, Show a) => a -> a -> Test
+actual ~?/= expected = TestCase (actual @?/= expected)
+
 main :: IO ()
 main = runTestTTAndExit allTests
 
@@ -195,28 +204,44 @@ testsFold =
 
 testsEval :: Test
 testsEval =
-  test
-    [ fst (eval (Suma (Rango 1 5) (Const 1)) genFijo) ~?= 4.0,
-      fst (eval (Suma (Rango 1 5) (Const 1)) (genNormalConSemilla 0)) ~?= 3.7980492,
-      -- el primer rango evalua a 2.7980492 y el segundo a 3.1250308
-      fst (eval (Suma (Rango 1 5) (Rango 1 5)) (genNormalConSemilla 0)) ~?= 5.92308,
-      -- el primer rango evalua a 2.7980492, el segundo a 3.1250308, y el tercero a 5.464013
-      fst (eval (Suma (Rango 1 5) (Suma (Rango 1 5) (Rango 1 5))) (genNormalConSemilla 0)) ~?= 11.387093
-    ]
+  let e1 = Suma (Rango 1 5) (Const 1)
+   in test
+        [ fst (eval e1 genFijo) ~?= 4.0,
+          fst (eval e1 (genNormalConSemilla 0)) ~?= 3.7980492,
+          -- el primer rango evalua a 2.7980492 y el segundo a 3.1250308
+          fst (eval (Suma (Rango 1 5) (Rango 1 5)) (genNormalConSemilla 0)) ~?= 5.92308,
+          -- el primer rango evalua a 2.7980492, el segundo a 3.1250308, y el tercero a 5.464013
+          fst (eval (Suma (Rango 1 5) (Suma (Rango 1 5) (Rango 1 5))) (genNormalConSemilla 0)) ~?= 11.387093,
+          -- devuelve el mismo resultado con genFijo
+          fst (eval e1 genFijo) ~?= fst (eval e1 (snd (eval e1 genFijo))),
+          -- devuelve resultados distintos con genNormalConSemilla
+          fst (eval e1 (genNormalConSemilla 0)) ~?/= fst (eval e1 (snd (eval e1 (genNormalConSemilla 0))))
+        ]
 
 testsArmarHistograma :: Test
 testsArmarHistograma =
-  test
-    [ fst (armarHistograma 1 1 (dameUno (1, 5)) (genNormalConSemilla 0)) ~?= histograma 1 (1.7980492, 3.7980492) [fst (dameUno (1, 5) (genNormalConSemilla 0))],
-      fst (armarHistograma 10 5 (dameUno (1, 5)) (genNormalConSemilla 0)) ~?= histograma 10 (0.77653575, 5.79564075) [2.7980492, 3.1250308, 5.464013, 3.526857, 1.5164927]
-    ]
+  let h1 = armarHistograma 1 1 (dameUno (1, 5)) (genNormalConSemilla 0)
+      h2 = armarHistograma 10 5 (dameUno (1, 5)) (genNormalConSemilla 0)
+   in test
+        [ length (casilleros (fst h1)) ~?= 3,
+          length (casilleros (fst h2)) ~?= 12,
+          fst h1 ~?= histograma 1 (1.7980492, 3.7980492) [fst (dameUno (1, 5) (genNormalConSemilla 0))],
+          fst h2 ~?= histograma 10 (0.77653575, 5.79564075) [2.7980492, 3.1250308, 5.464013, 3.526857, 1.5164927]
+        ]
 
 testsEvalHistograma :: Test
 testsEvalHistograma =
-  test
-    [ fst (evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105)) genFijo) ~?= histograma 11 (104.5, 106.5) [105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5],
-      fst (evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105)) (genNormalConSemilla 0)) ~?= histograma 11 (102.005486, 109.4118278) [105.45434, 108.62258, 104.74236, 108.77485, 101.97703, 105.34323, 106.31043, 104.52736, 106.369606, 104.96473]
-    ]
+  let e1 = evalHistograma 11 10 (Suma (Rango 1 5) (Rango 100 105))
+   in test
+        [ length (casilleros (fst (e1 genFijo))) ~?= 13,
+          length (casilleros (fst (e1 (genNormalConSemilla 0)))) ~?= 13,
+          fst (e1 genFijo) ~?= histograma 11 (104.5, 106.5) [105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5, 105.5],
+          fst (e1 (genNormalConSemilla 0)) ~?= histograma 11 (102.005486, 109.4118278) [105.45434, 108.62258, 104.74236, 108.77485, 101.97703, 105.34323, 106.31043, 104.52736, 106.369606, 104.96473],
+          -- devuelve el mismo resultado con genFijo
+          fst (e1 genFijo) ~?= fst (e1 (snd (e1 genFijo))),
+          -- devuelve resultados distintos con genNormalConSemilla
+          fst (e1 (genNormalConSemilla 0)) ~?/= fst (e1 (snd (e1 (genNormalConSemilla 0))))
+        ]
 
 testsParse :: Test
 testsParse =
