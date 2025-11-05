@@ -1,10 +1,18 @@
 
 
 % Ejercicio 1
-matriz(F, C, M) :- completar("Ejercicio 1").
+
+crearLista([],0).
+crearLista([_|XS],N) :- N>0, N2 is N-1, crearLista(XS,N2).
+
+% matriz(+F,+C,-M)
+matriz(0,_,[]).
+matriz(F,C,M):- F>0, F2 is F-1, crearLista(L2, C), matriz(F2, C, L3), append([L2],L3,M).
 
 % Ejercicio 2
-replicar(X, N, L) :- completar("Ejercicio 2").
+% replicar(+X,+N,-L)
+replicar(_,0,[]).
+replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
 
 % Ejercicio 3
 transponer(_, _) :- completar("Ejercicio 3").
