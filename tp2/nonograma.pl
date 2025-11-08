@@ -15,7 +15,17 @@ replicar(_,0,[]).
 replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
 
 % Ejercicio 3
-transponer(_, _) :- completar("Ejercicio 3").
+transponer([], []).
+transponer([[]|_], []).
+
+transponer(Matriz, [Fila | RestoTranspuesta]) :-
+    columnas_a_filas(Matriz, Fila, RestoMatriz),
+    transponer(RestoMatriz, RestoTranspuesta).
+
+% columnas_a_filas(+Matriz, -Fila, -RestoMatriz)
+columnas_a_filas([], [], []).
+columnas_a_filas([[H | T] | RestoMatriz], [H | RestoFilaTranspuesta], [T | RestoMatrizTranspuesta]) :-
+    columnas_a_filas(RestoMatriz, RestoFilaTranspuesta, RestoMatrizTranspuesta).
 
 % Predicado dado armarNono/3
 armarNono(RF, RC, nono(M, RS)) :-
@@ -31,7 +41,30 @@ zipR([], [], []).
 zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 % Ejercicio 4
-pintadasValidas(_) :- completar("Ejercicio 4").
+% pintadasValidas(+R)
+% length(L,5), pintadasValidas(r([3], L)), mostrarFila(L)
+
+%prefijo(?P,+L)
+prefijo(P,L):- append(P, _ ,L).
+
+%sufijo(?S,+L)
+sufijo(S,L):- append(_, S, L).
+
+%sublista(?S,+L)
+sublista(S,L):- prefijo(P,L), sufijo(S,P).
+
+% [x,x,x,o,o]
+% [o,x,x,x,o]
+% [o,o,x,x,x]
+
+pintadasValidas2(r([R|RS], L1)) :- replicar(x,R,L2), interseccion(L2,L1)
+
+pintadasValidas(r(_, [])). 
+pintadasValidas(r([],_)).
+pintadasValidas(r([],[o|LS])) :- pintadasValidas(r([], LS)).	
+pintadasValidas(r([R|RS],[L|LS])) :- 
+pintadasValidas(r([R|RS], [x|LS])) :- R > 0, R2 is R-1, pintadasValidas(r([R2|RS],LS)).
+pintadasValidas(r([0|RS], [o|LS])) :- pintadasValidas(r(RS, LS)).
 
 % Ejercicio 5
 resolverNaive(_) :-  completar("Ejercicio 5").
