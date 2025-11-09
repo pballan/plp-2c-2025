@@ -67,7 +67,8 @@ pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       pintadasValidas(r([E2|Es], RestoL)).
 
 % Ejercicio 5
-resolverNaive(_) :-  completar("Ejercicio 5").
+resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
+
 
 % Ejercicio 6
 pintarObligatorias(_) :- completar("Ejercicio 6").
