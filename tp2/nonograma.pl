@@ -39,7 +39,33 @@ zipR([], [], []).
 zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 % Ejercicio 4
-pintadasValidas(_) :- completar("Ejercicio 4").
+
+pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L). 
+pintadasValidas(r([E], L)) :- length(L, Len), 
+                              E =< Len, 
+                              replicar(x, E, ListaPintada),
+                              cantidadLibre is Len - E,
+                              between(0, cantidadLibre, N),
+                              restoLibre is cantidadLibre - N,
+                              replicar(o, N, L1),
+                              replicar(o, restoLibre, L3),
+                              append(L1, ListaPintada, RES),
+                              append(RES, L3, L). 
+pintadasValidas(r([E1|Es], L)) :- length(L, N), 
+                                sumlist([E1|Es], CantidadX),
+                                length([E1|Es], CantidadBloquesX),
+                                Separadores is CantidadBloquesX -1, 
+                                MaxStart is N - (CantidadX + Separadores), 
+                                MaxStart >= 0, between(0, MaxStart, Inicio), 
+                                replicar(o, Inicio, Prefijo), 
+                                replicar(x, E1, ListaPintada), 
+                                append(Prefijo, ListaPintada, RES), 
+                                length(RES, LenRES), 
+                                ResLen is N - LenRES - 1, 
+                                ResLen >= 0, 
+                                append(RES, [o|Rest], L), 
+                                length(Rest, ResLen), 
+                                pintadasValidas(r(Es, Rest)).
 
 % Ejercicio 5
 resolverNaive(_) :-  completar("Ejercicio 5").
@@ -69,7 +95,7 @@ deducirVariasPasadas(NN) :-
 	deducirVariasPasadasCont(NN, VI, VF).
 
 % Predicado dado
-deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo más cambios y frenamos.
+deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo maSs cambios y frenamos.
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 % Ejercicio 8
