@@ -1,29 +1,39 @@
 
 
 % Ejercicio 1
+
+
 %matriz(+F, +C, -M)
+
+%%%%% Implementacion 1 matriz %%%%%
 matriz(F, C, M) :- length(M, F), maplist(conLongitud(C), M).
 
 %conLongitud(L, Fila)
 conLongitud(L, Fila) :- length(Fila, L).
 
+%%%%% Implementacion 2 matriz %%%%%
+
 crearLista([],0).
 crearLista([_|XS],N) :- N>0, N2 is N-1, crearLista(XS,N2).
 
-% matriz(+F,+C,-M)
 matriz(0,_,[]).
 matriz(F,C,M):- F>0, F2 is F-1, crearLista(L2, C), matriz(F2, C, L3), append([L2],L3,M).
 
 
 % Ejercicio 2
-replicar(Elem, N, Lista) :- length(Lista, N), maplist(igualAElem(Elem), Lista).
 
+%%%%% Implementacion 1 replicar %%%%%
+replicar(Elem, N, Lista) :- length(Lista, N), maplist(igualAElem(Elem), Lista).
 igualAElem(Elem, E) :- Elem = E.
 
+%%%%% Implementacion 2 replicar %%%%%
 replicar(_,0,[]).
 replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
 
+
 % Ejercicio 3
+
+%%%%% Implementacion 1 transponer %%%%%
 transponer([], []).
 transponer(M, []) :- filasVacias(M).
 transponer(M, [Heads|MTs]) :- extraerColumna(M, Heads, Tails), transponer(Tails, MTs).
@@ -33,6 +43,8 @@ extraerColumna([[H|T]|Ms], [H|Hs], [T|Ts]) :- extraerColumna(Ms, Hs, Ts).
 
 filasVacias([]).
 filasVacias([[]|Ms]) :- filasVacias(Ms).
+
+%%%%% Implementacion 2 transponer %%%%%
 
 transponer([], []).
 transponer([[]|_], []).
@@ -59,7 +71,11 @@ armarNono(RF, RC, nono(M, RS)) :-
 zipR([], [], []).
 zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
+
 % Ejercicio 4
+
+%%%%% Implementacion 1 pintadasValidas %%%%%
+
 pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L).
 
 pintadasValidas(r([E], L)) :- length(L, Len),
@@ -85,6 +101,8 @@ pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       append(PrefijoSinPintar, ListaPintada, InicioListaFinal),
                                       append(InicioListaFinal, [o|RestoL], L),
                                       pintadasValidas(r([E2|Es], RestoL)).
+
+%%%%% Implementacion 2 pintadasValidas %%%%%
 
 % pintadasValidas(+R)
 % length(L,5), pintadasValidas(r([3], L)), mostrarFila(L)
