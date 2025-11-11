@@ -168,13 +168,22 @@ deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 % restriccionConMenosLibres(+NN,-R)
 
+deducir1Pasada2(nono(M, RS), nono(M1, RS2)) :- maplist(pintarObligatorias, RS), M1 = M, R2s = RS.
+
 restriccionConMenosLibres(nono(NN,RS),R) :- 
-	nono(NN1, RS1) = deducirVariasPasadas(nono(NN,RS)), 
-	member(R, RS1), member(R2, RS1), R2 =\= R, not(cantidadVariablesLibres(R2) < cantidadVariablesLibres(R)).
-	%CantVL1 is cantidadVariablesLibres()
-	%not(CantVL is cantidadVariablesLibres(R) < deducir1Pasada(L, RES), cantidadVariablesLibres(RES)). 
+	member(R, RS),
+	cantidadVariablesLibres(R, CantR),
+	CantR > 0,
+	not((member(R2, RS), cantidadVariablesLibres(R2, CantR2), R \= R2, CantR2 > 0, CantR2 < CantR)).
+
 % Ejercicio 9
-resolverDeduciendo(NN) :- completar("Ejercicio 9").
+
+resolverDeduciendo(NN) :- 
+	deducirVariasPasadas(NN),
+	restriccionConMenosLibres(NN, r(R, L)),
+	pintadasValidas(R,L),
+	resolverDeduciendo(NN)
+	.
 % Ejercicio 10
 solucionUnica(NN) :- completar("Ejercicio 10").
 
