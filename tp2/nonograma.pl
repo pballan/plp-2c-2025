@@ -7,14 +7,23 @@ matriz(F, C, M) :- length(M, F), maplist(conLongitud(C), M).
 %conLongitud(L, Fila)
 conLongitud(L, Fila) :- length(Fila, L).
 
+crearLista([],0).
+crearLista([_|XS],N) :- N>0, N2 is N-1, crearLista(XS,N2).
+
+% matriz(+F,+C,-M)
+matriz(0,_,[]).
+matriz(F,C,M):- F>0, F2 is F-1, crearLista(L2, C), matriz(F2, C, L3), append([L2],L3,M).
+
+
 % Ejercicio 2
-%replicar(+Elem, +N, -Lista) 
 replicar(Elem, N, Lista) :- length(Lista, N), maplist(igualAElem(Elem), Lista).
 
 igualAElem(Elem, E) :- Elem = E.
 
+replicar(_,0,[]).
+replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
+
 % Ejercicio 3
-%transponer(+M, -MT)
 transponer([], []).
 transponer(M, []) :- filasVacias(M).
 transponer(M, [Heads|MTs]) :- extraerColumna(M, Heads, Tails), transponer(Tails, MTs).
@@ -24,6 +33,18 @@ extraerColumna([[H|T]|Ms], [H|Hs], [T|Ts]) :- extraerColumna(Ms, Hs, Ts).
 
 filasVacias([]).
 filasVacias([[]|Ms]) :- filasVacias(Ms).
+
+transponer([], []).
+transponer([[]|_], []).
+
+transponer(Matriz, [Fila | RestoTranspuesta]) :-
+    columnas_a_filas(Matriz, Fila, RestoMatriz),
+    transponer(RestoMatriz, RestoTranspuesta).
+
+% columnas_a_filas(+Matriz, -Fila, -RestoMatriz)
+columnas_a_filas([], [], []).
+columnas_a_filas([[H | T] | RestoMatriz], [H | RestoFilaTranspuesta], [T | RestoMatrizTranspuesta]) :-
+    columnas_a_filas(RestoMatriz, RestoFilaTranspuesta, RestoMatrizTranspuesta).
 
 % Predicado dado armarNono/3
 armarNono(RF, RC, nono(M, RS)) :-
@@ -39,7 +60,6 @@ zipR([], [], []).
 zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 % Ejercicio 4
-
 pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L).
 
 pintadasValidas(r([E], L)) :- length(L, Len),
@@ -65,6 +85,31 @@ pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       append(PrefijoSinPintar, ListaPintada, InicioListaFinal),
                                       append(InicioListaFinal, [o|RestoL], L),
                                       pintadasValidas(r([E2|Es], RestoL)).
+
+% pintadasValidas(+R)
+% length(L,5), pintadasValidas(r([3], L)), mostrarFila(L)
+
+%prefijo(?P,+L)
+prefijo(P,L):- append(P, _ ,L).
+
+%sufijo(?S,+L)
+sufijo(S,L):- append(_, S, L).
+
+%sublista(?S,+L)
+sublista(S,L):- prefijo(P,L), sufijo(S,P).
+
+% [x,x,x,o,o]
+% [o,x,x,x,o]
+% [o,o,x,x,x]
+
+pintadasValidas2(r([R|RS], L1)) :- replicar(x,R,L2), interseccion(L2,L1)
+
+pintadasValidas(r(_, [])). 
+pintadasValidas(r([],_)).
+pintadasValidas(r([],[o|LS])) :- pintadasValidas(r([], LS)).	
+pintadasValidas(r([R|RS],[L|LS])) :- 
+pintadasValidas(r([R|RS], [x|LS])) :- R > 0, R2 is R-1, pintadasValidas(r([R2|RS],LS)).
+pintadasValidas(r([0|RS], [o|LS])) :- pintadasValidas(r(RS, LS)).
 
 % Ejercicio 5
 resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
