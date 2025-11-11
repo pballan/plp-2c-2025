@@ -134,7 +134,14 @@ resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
 
 
 % Ejercicio 6
-pintarObligatorias(_) :- completar("Ejercicio 6").
+% idea: genero todas las pintadas validas con findall (asumo que tiene sentido) y despues voy procesando de a 2 listas y combinando posicion a posicion con CombinarCelda.
+% otra que se me acaba de ocurrir pero no la veo clara es que si gneero las pintadas validas, el resultado lo trato como una matriz, traspongo la matriz y veo una lista que tiene todo x, entonces eso deberia ser una posicion con un c. (ver seccion 1.3 del enunciado)
+%
+%pintarObligatorias(r(R, L)) :- findall(L, pintadasValidas(r(R, L)), TodasLasPintadasValidas), combinar(TodasLasPintadasValidas, L).
+
+%combinar([[]], L).
+%combinar([E|ES], L) :- maplist(combinarCelda, E, L, L1), combinar(ES, L1).
+%combinar([L1|LS], RES) :- 
 
 % Predicado dado combinarCelda/3
 combinarCelda(A, B, _) :- var(A), var(B).
