@@ -76,9 +76,9 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 %%%%% Implementacion 1 pintadasValidas %%%%%
 
-pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L).
+pintadasValidas2(r([], L)) :- length(L, Len), replicar(o, Len, L).
 
-pintadasValidas(r([E], L)) :- length(L, Len),
+pintadasValidas2(r([E], L)) :- length(L, Len),
                               E =< Len,
                               CantidadLibre is Len - E,
                               between(0, CantidadLibre, Inicio),
@@ -89,7 +89,7 @@ pintadasValidas(r([E], L)) :- length(L, Len),
                               replicar(o, RestLen, RestoLista),
                               append(InicioListaFinal, RestoLista, L).
 
-pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
+pintadasValidas2(r([E1,E2|Es], L)) :-  length(L, N),
                                       sumlist([E1,E2|Es], CantidadX),
                                       length([E1,E2|Es], CantidadBloquesX),
                                       Separadores is CantidadBloquesX - 1,
@@ -101,6 +101,23 @@ pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       append(PrefijoSinPintar, ListaPintada, InicioListaFinal),
                                       append(InicioListaFinal, [o|RestoL], L),
                                       pintadasValidas(r([E2|Es], RestoL)).
+
+listasDeXs([],[]).
+listasDeXs([X|XS],[L|LS]) :- replicar('x',X,L), listasDeXs(XS,LS).
+
+pintadasValidas(r(R,L)) :- 
+	listasDeXs(R,XS), 
+	length(L, Total),
+	length(R, CantSegmentos),
+	sumlist(R, CantXs),
+	CantOs is Total-CantXs,
+	pintadasValidasAux(XS, CantOs, CantSegmentos,L1). 
+
+%pintadasValidasAux([X1,X2|XS], CantOs, CantSegmentos, L) :- 
+%	between(CantSegmentos,CantOs,CO),
+%	replicar('o',CO,OS),
+%	append()
+
 
 %%%%% Implementacion 2 pintadasValidas %%%%%
 
@@ -116,32 +133,26 @@ sufijo(S,L):- append(_, S, L).
 %sublista(?S,+L)
 sublista(S,L):- prefijo(P,L), sufijo(S,P).
 
-% [x,x,x,o,o]
-% [o,x,x,x,o]
-% [o,o,x,x,x]
-
-pintadasValidas2(r([R|RS], L1)) :- replicar(x,R,L2), interseccion(L2,L1)
-
-pintadasValidas(r(_, [])). 
-pintadasValidas(r([],_)).
-pintadasValidas(r([],[o|LS])) :- pintadasValidas(r([], LS)).	
-pintadasValidas(r([R|RS],[L|LS])) :- 
-pintadasValidas(r([R|RS], [x|LS])) :- R > 0, R2 is R-1, pintadasValidas(r([R2|RS],LS)).
-pintadasValidas(r([0|RS], [o|LS])) :- pintadasValidas(r(RS, LS)).
-
 % Ejercicio 5
 resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
 
 
 % Ejercicio 6
-% idea: genero todas las pintadas validas con findall (asumo que tiene sentido) y despues voy procesando de a 2 listas y combinando posicion a posicion con CombinarCelda.
-% otra que se me acaba de ocurrir pero no la veo clara es que si gneero las pintadas validas, el resultado lo trato como una matriz, traspongo la matriz y veo una lista que tiene todo x, entonces eso deberia ser una posicion con un c. (ver seccion 1.3 del enunciado)
+% idea: genero todas las pintadas validas con findall (asumo que tiene sentido) 
+% y despues voy procesando de a 2 listas y combinando posicion a posicion con CombinarCelda.
+% otra que se me acaba de ocurrir pero no la veo clara es que si genero las pintadas validas, 
+% el resultado lo trato como una matriz, traspongo la matriz y veo una lista que tiene todo x, 
+% entonces eso deberia ser una posicion con un c. (ver seccion 1.3 del enunciado)
 %
-%pintarObligatorias(r(R, L)) :- findall(L, pintadasValidas(r(R, L)), TodasLasPintadasValidas), combinar(TodasLasPintadasValidas, L).
 
-%combinar([[]], L).
-%combinar([E|ES], L) :- maplist(combinarCelda, E, L, L1), combinar(ES, L1).
-%combinar([L1|LS], RES) :- 
+pintarObligatorias(r(R, L)) :- 
+	findall(L, pintadasValidas(r(R, L)), TodasLasPintadasValidas), 
+	combinar(TodasLasPintadasValidas, L).
+
+combinar([], L).
+combinar([L],L).
+combinar([E1,E2],L):- maplist(combinarCelda, E1, E2, L1).
+combinar([E1,E2|ES], L) :- maplist(combinarCelda, E1, E2, L1), combinar([L1|ES], L).
 
 % Predicado dado combinarCelda/3
 combinarCelda(A, B, _) :- var(A), var(B).
