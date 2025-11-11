@@ -5,8 +5,6 @@
 
 %matriz(+F, +C, -M)
 
-%%%%% Implementacion 1 matriz %%%%%
-matriz(F, C, M) :- length(M, F), maplist(conLongitud(C), M).
 
 %conLongitud(L, Fila)
 conLongitud(L, Fila) :- length(Fila, L).
@@ -21,11 +19,6 @@ matriz(F,C,M):- F>0, F2 is F-1, crearLista(L2, C), matriz(F2, C, L3), append([L2
 
 
 % Ejercicio 2
-
-%%%%% Implementacion 1 replicar %%%%%
-replicar(Elem, N, Lista) :- length(Lista, N), maplist(igualAElem(Elem), Lista).
-igualAElem(Elem, E) :- Elem = E.
-
 %%%%% Implementacion 2 replicar %%%%%
 replicar(_,0,[]).
 replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
@@ -43,15 +36,6 @@ extraerColumna([[H|T]|Ms], [H|Hs], [T|Ts]) :- extraerColumna(Ms, Hs, Ts).
 
 filasVacias([]).
 filasVacias([[]|Ms]) :- filasVacias(Ms).
-
-%%%%% Implementacion 2 transponer %%%%%
-
-transponer([], []).
-transponer([[]|_], []).
-
-transponer(Matriz, [Fila | RestoTranspuesta]) :-
-    columnas_a_filas(Matriz, Fila, RestoMatriz),
-    transponer(RestoMatriz, RestoTranspuesta).
 
 % columnas_a_filas(+Matriz, -Fila, -RestoMatriz)
 columnas_a_filas([], [], []).
@@ -76,9 +60,9 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 %%%%% Implementacion 1 pintadasValidas %%%%%
 
-pintadasValidas2(r([], L)) :- length(L, Len), replicar(o, Len, L).
+pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L).
 
-pintadasValidas2(r([E], L)) :- length(L, Len),
+pintadasValidas(r([E], L)) :- length(L, Len),
                               E =< Len,
                               CantidadLibre is Len - E,
                               between(0, CantidadLibre, Inicio),
@@ -89,7 +73,7 @@ pintadasValidas2(r([E], L)) :- length(L, Len),
                               replicar(o, RestLen, RestoLista),
                               append(InicioListaFinal, RestoLista, L).
 
-pintadasValidas2(r([E1,E2|Es], L)) :-  length(L, N),
+pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       sumlist([E1,E2|Es], CantidadX),
                                       length([E1,E2|Es], CantidadBloquesX),
                                       Separadores is CantidadBloquesX - 1,
@@ -102,16 +86,16 @@ pintadasValidas2(r([E1,E2|Es], L)) :-  length(L, N),
                                       append(InicioListaFinal, [o|RestoL], L),
                                       pintadasValidas(r([E2|Es], RestoL)).
 
-listasDeXs([],[]).
-listasDeXs([X|XS],[L|LS]) :- replicar('x',X,L), listasDeXs(XS,LS).
+%listasDeXs([],[]).
+%listasDeXs([X|XS],[L|LS]) :- replicar('x',X,L), listasDeXs(XS,LS).
 
-pintadasValidas(r(R,L)) :- 
-	listasDeXs(R,XS), 
-	length(L, Total),
-	length(R, CantSegmentos),
-	sumlist(R, CantXs),
-	CantOs is Total-CantXs,
-	pintadasValidasAux(XS, CantOs, CantSegmentos,L1). 
+%pintadasValidas(r(R,L)) :- 
+%	listasDeXs(R,XS), 
+%	length(L, Total),
+%	length(R, CantSegmentos),
+%	sumlist(R, CantXs),
+%	CantOs is Total-CantXs,
+%	pintadasValidasAux(XS, CantOs, CantSegmentos,L1). 
 
 %pintadasValidasAux([X1,X2|XS], CantOs, CantSegmentos, L) :- 
 %	between(CantSegmentos,CantOs,CO),
@@ -149,10 +133,10 @@ pintarObligatorias(r(R, L)) :-
 	findall(L, pintadasValidas(r(R, L)), TodasLasPintadasValidas), 
 	combinar(TodasLasPintadasValidas, L).
 
-combinar([], L).
+
 combinar([L],L).
-combinar([E1,E2],L):- maplist(combinarCelda, E1, E2, L1).
-combinar([E1,E2|ES], L) :- maplist(combinarCelda, E1, E2, L1), combinar([L1|ES], L).
+combinar([E1,E2],L):- maplist(combinarCelda, E1, E2, L).
+combinar([E1,E2|ES], L) :- length(ES, N), N =\= 0, maplist(combinarCelda, E1, E2, L1), combinar([L1|ES], L).
 
 % Predicado dado combinarCelda/3
 combinarCelda(A, B, _) :- var(A), var(B).
@@ -162,7 +146,7 @@ combinarCelda(A, B, A) :- nonvar(A), nonvar(B), A = B.
 combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 
 % Ejercicio 7
-deducir1Pasada(_) :- completar("Ejercicio 7").
+deducir1Pasada(nono(M, RS)) :- maplist(pintarObligatorias, RS).
 
 % Predicado dado
 cantidadVariablesLibres(T, N) :- term_variables(T, LV), length(LV, N).
@@ -180,11 +164,17 @@ deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo maSs cambios y 
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
 % Ejercicio 8
-restriccionConMenosLibres(_, _) :- completar("Ejercicio 8").
 
+
+% restriccionConMenosLibres(+NN,-R)
+
+restriccionConMenosLibres(nono(NN,RS),R) :- 
+	nono(NN1, RS1) = deducirVariasPasadas(nono(NN,RS)), 
+	member(R, RS1), member(R2, RS1), R2 =\= R, not(cantidadVariablesLibres(R2) < cantidadVariablesLibres(R)).
+	%CantVL1 is cantidadVariablesLibres()
+	%not(CantVL is cantidadVariablesLibres(R) < deducir1Pasada(L, RES), cantidadVariablesLibres(RES)). 
 % Ejercicio 9
 resolverDeduciendo(NN) :- completar("Ejercicio 9").
-
 % Ejercicio 10
 solucionUnica(NN) :- completar("Ejercicio 10").
 
