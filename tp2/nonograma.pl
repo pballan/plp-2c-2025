@@ -1,5 +1,3 @@
-
-
 % Ejercicio 1
 
 %matriz(+F, +C, -M)
@@ -46,8 +44,6 @@ zipR([R|RT], [L|LT], [r(R,L)|T]) :- zipR(RT, LT, T).
 
 
 % Ejercicio 4
-
-%%%%% Implementacion 1 pintadasValidas %%%%%
 
 pintadasValidas(r([], L)) :- length(L, Len), replicar(o, Len, L).
 
