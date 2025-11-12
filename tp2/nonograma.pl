@@ -2,14 +2,7 @@
 
 % Ejercicio 1
 
-
 %matriz(+F, +C, -M)
-
-
-%conLongitud(L, Fila)
-conLongitud(L, Fila) :- length(Fila, L).
-
-%%%%% Implementacion 2 matriz %%%%%
 
 crearLista([],0).
 crearLista([_|XS],N) :- N>0, N2 is N-1, crearLista(XS,N2).
@@ -19,25 +12,21 @@ matriz(F,C,M):- F>0, F2 is F-1, crearLista(L2, C), matriz(F2, C, L3), append([L2
 
 
 % Ejercicio 2
-%%%%% Implementacion 2 replicar %%%%%
+
 replicar(_,0,[]).
 replicar(X, N, [X|XS]) :- N>0, N2 is N-1, replicar(X,N2,XS).
 
 
 % Ejercicio 3
 
-%%%%% Implementacion 1 transponer %%%%%
 transponer([], []).
-transponer(M, []) :- filasVacias(M).
-transponer(M, [Heads|MTs]) :- extraerColumna(M, Heads, Tails), transponer(Tails, MTs).
+transponer([[]|_], []).
 
-extraerColumna([], [], []).
-extraerColumna([[H|T]|Ms], [H|Hs], [T|Ts]) :- extraerColumna(Ms, Hs, Ts).
+transponer(Matriz, [Fila | RestoTranspuesta]) :-
+    columnas_a_filas(Matriz, Fila, RestoMatriz),
+    transponer(RestoMatriz, RestoTranspuesta).
 
-filasVacias([]).
-filasVacias([[]|Ms]) :- filasVacias(Ms).
-
-% columnas_a_filas(+Matriz, -Fila, -RestoMatriz)
+%columnas_a_filas(+Matriz, -Fila, -RestoMatriz)
 columnas_a_filas([], [], []).
 columnas_a_filas([[H | T] | RestoMatriz], [H | RestoFilaTranspuesta], [T | RestoMatrizTranspuesta]) :-
     columnas_a_filas(RestoMatriz, RestoFilaTranspuesta, RestoMatrizTranspuesta).
@@ -86,37 +75,6 @@ pintadasValidas(r([E1,E2|Es], L)) :-  length(L, N),
                                       append(InicioListaFinal, [o|RestoL], L),
                                       pintadasValidas(r([E2|Es], RestoL)).
 
-%listasDeXs([],[]).
-%listasDeXs([X|XS],[L|LS]) :- replicar('x',X,L), listasDeXs(XS,LS).
-
-%pintadasValidas(r(R,L)) :- 
-%	listasDeXs(R,XS), 
-%	length(L, Total),
-%	length(R, CantSegmentos),
-%	sumlist(R, CantXs),
-%	CantOs is Total-CantXs,
-%	pintadasValidasAux(XS, CantOs, CantSegmentos,L1). 
-
-%pintadasValidasAux([X1,X2|XS], CantOs, CantSegmentos, L) :- 
-%	between(CantSegmentos,CantOs,CO),
-%	replicar('o',CO,OS),
-%	append()
-
-
-%%%%% Implementacion 2 pintadasValidas %%%%%
-
-% pintadasValidas(+R)
-% length(L,5), pintadasValidas(r([3], L)), mostrarFila(L)
-
-%prefijo(?P,+L)
-prefijo(P,L):- append(P, _ ,L).
-
-%sufijo(?S,+L)
-sufijo(S,L):- append(_, S, L).
-
-%sublista(?S,+L)
-sublista(S,L):- prefijo(P,L), sufijo(S,P).
-
 % Ejercicio 5
 resolverNaive(nono(_, RS)) :- maplist(pintadasValidas, RS).
 
@@ -146,7 +104,7 @@ combinarCelda(A, B, A) :- nonvar(A), nonvar(B), A = B.
 combinarCelda(A, B, _) :- nonvar(A), nonvar(B), A \== B.
 
 % Ejercicio 7
-deducir1Pasada(nono(M, RS)) :- maplist(pintarObligatorias, RS).
+deducir1Pasada(nono(_, RS)) :- maplist(pintarObligatorias, RS).
 
 % Predicado dado
 cantidadVariablesLibres(T, N) :- term_variables(T, LV), length(LV, N).
@@ -163,27 +121,28 @@ deducirVariasPasadas(NN) :-
 deducirVariasPasadasCont(_, A, A). % Si VI = VF entonces no hubo maSs cambios y frenamos.
 deducirVariasPasadasCont(NN, A, B) :- A =\= B, deducirVariasPasadas(NN).
 
+
 % Ejercicio 8
 
-
 % restriccionConMenosLibres(+NN,-R)
-
-deducir1Pasada2(nono(M, RS), nono(M1, RS2)) :- maplist(pintarObligatorias, RS), M1 = M, R2s = RS.
-
 restriccionConMenosLibres(nono(NN,RS),R) :- 
 	member(R, RS),
 	cantidadVariablesLibres(R, CantR),
 	CantR > 0,
 	not((member(R2, RS), cantidadVariablesLibres(R2, CantR2), R \= R2, CantR2 > 0, CantR2 < CantR)).
 
+
 % Ejercicio 9
 
-resolverDeduciendo(NN) :- 
-	deducirVariasPasadas(NN),
-	restriccionConMenosLibres(NN, r(R, L)),
-	pintadasValidas(R,L),
-	resolverDeduciendo(NN)
-	.
+resolverDeduciendo(nono(M,RE)) :- ground(RE).
+resolverDeduciendo(nono(M,RE)) :- 
+	deducirVariasPasadas(nono(M,RE)),
+	restriccionConMenosLibres(nono(M,RE), r(R, L)), 
+	pintadasValidas(r(R,L)),
+	deducirVariasPasadas(nono(M,RE))
+	resolverDeduciendo(nono(M,RE)),
+
+
 % Ejercicio 10
 solucionUnica(NN) :- completar("Ejercicio 10").
 
