@@ -134,13 +134,13 @@ restriccionConMenosLibres(nono(NN,RS),R) :-
 
 % Ejercicio 9
 
-resolverDeduciendo(nono(M,RE)) :- ground(RE).
+resolverDeduciendo(nono(M,RE)) :- ground(nono(M,RE)).
 resolverDeduciendo(nono(M,RE)) :- 
-	deducirVariasPasadas(nono(M,RE)),
+	deducirVariasPasadas(nono(M,RE)), 
+	ground(nono(M,RE)), !,
 	restriccionConMenosLibres(nono(M,RE), r(R, L)), 
-	pintadasValidas(r(R,L)),
-	deducirVariasPasadas(nono(M,RE))
-	resolverDeduciendo(nono(M,RE)),
+	pintadasValidas(r(R,L)), 
+	resolverDeduciendo(nono(M,RE)).
 
 
 % Ejercicio 10
